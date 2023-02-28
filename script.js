@@ -13,7 +13,7 @@
 (function () {
     "use strict";
     //setting image and canvas size
-    const maxImgheight = 300;
+    const maxImgheight = 600;
     const padding_between_images = 10;
   
     //create a hidden floating window
@@ -44,6 +44,7 @@
     downloadButton.setAttribute("type", "button");
     downloadButton.style.display = "inline-block";
     downloadButton.style.padding = "5px";
+    downloadButton.style.margin = "5px";
     //create a button to unselect all images
     const unselectButton = document.createElement("button");
     unselectButton.innerText = "Unselect All";
@@ -67,38 +68,40 @@
     const modalBox = document.createElement("div");
     modalBox.style.display = "none";
     modalBox.style.position = "fixed";
-    modalBox.style.zIndex = 1;
-    modalBox.style.paddingTop = "100px";
-    modalBox.style.left = 0;
-    modalBox.style.top = 0;
-    modalBox.style.width = "100%";
-    modalBox.style.height = "100%";
-    modalBox.style.overflow = "auto";
+    modalBox.style.zIndex = 10000;
+    // modalBox.style.paddingTop = "100px";
+    modalBox.style.left = "20%";
+    modalBox.style.top = "10%";
+    modalBox.style.width = "60vw";
+    modalBox.style.height = "60vh";
+    modalBox.style.overflowY = "auto";
     modalBox.style.backgroundColor = "rgb(0,0,0)";
     modalBox.style.backgroundColor = "rgba(0,0,0,0.4)";
   
     //modal content
     const modalContent = document.createElement("div");
+    modalContent.style.position = "absolute";
     modalContent.style.backgroundColor = "#fefefe";
     modalContent.style.margin = "auto";
     modalContent.style.padding = "20px";
     modalContent.style.border = "1px solid #888";
-    modalContent.style.width = "80%";
+    modalContent.style.width = "10000px";
+    modalContent.style.height = "10000px"
   
     // modal close
     const closeBtn = document.createElement("span");
     closeBtn.innerHTML = "&times;";
     closeBtn.style.color = "#aaaaaa";
-    closeBtn.style.float = "right";
+    closeBtn.style.float = "left";
     closeBtn.style.fontSize = "28px";
     closeBtn.style.fontWeight = "bold";
-  
+
     //modal content canvas
     const modalCanvas = document.createElement("canvas");
     modalCanvas.id = "modalCanvas";
     //add everything to modal
-    modalContent.appendChild(modalCanvas);
-    modalContent.appendChild(closeBtn);
+    modalBox.appendChild(closeBtn);
+    modalBox.appendChild(modalCanvas);
     modalBox.appendChild(modalContent);
     //add modal box to body
     document.body.appendChild(modalBox);
@@ -142,6 +145,7 @@
         floatingWindow.style.display = "none";
       }
     }
+    //lisen to click event
     document.addEventListener("click", function (event) {
       if (event.target.id === "floatingwindow") {
         //do nothing
@@ -160,6 +164,22 @@
         floatingWindow.style.display = "none";
       }
     });
+
+    //TODO make the floating window draggable
+    // document.addEventListener("mousedown", function (event) {
+    //   if (event.target === floatingWindow){
+    //     //floating window to be draged
+    //     floatingWindow.style.position = "absolute";
+    //     floatingWindow.style.zIndex = 1000;
+    //     //get the current position of the floating window
+    //     floatingWindow.style.left.x = event.clientX + "px";
+    //     floatingWindow.style.top.y = event.clientY + "px";
+       
+
+    //   }
+    // });
+
+
   
     //download selected images in a grid
     function generate_photo_grid(imgPerRow) {
@@ -189,27 +209,27 @@
       let rowCount = 1;
       //loop thought each image
       for (var i = 0; i < highlightedImages.length; i++) {
-        //when current image is add to a new row
-        if ((i + 1) % numPicPerRow == 0) {
-          height += maxImgheight;
-          current_row_width = 0;
-          rowCount++;
-        }
         //get scale make height == maxImgheight
         const scale = maxImgheight / highlightedImages[i].height;
         //scale width
         const scaledWidth = highlightedImages[i].width * scale;
         current_row_width += scaledWidth;
         width = width < current_row_width ? current_row_width : width;
+        //when next image is add to a new row
+        if ((i + 1) % numPicPerRow === 0) {
+          height += maxImgheight;
+          current_row_width = 0;
+          rowCount++;
+        }
       }
       return { height: height, width: width, rowCount: rowCount };
     }
   
     function create_an_canvas(setting) {
       modalCanvas.width =
-        setting.width + (setting.rowCount - 1) * padding_between_images;
+        setting.width + (setting.rowCount) * padding_between_images;
       modalCanvas.height =
-        setting.height + (setting.rowCount - 1) * padding_between_images;
+        setting.height + (setting.rowCount ) * padding_between_images;
       modalCanvas.style.border = "1px solid black";
     }
   
