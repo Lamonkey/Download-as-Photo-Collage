@@ -1,3 +1,10 @@
+//setting image and canvas size 
+const maxImgheight = 300;
+const padding_between_images = 10;
+
+
+
+
 //create a hidden floating window
 let floatingWindow = document.createElement("div");
 
@@ -26,6 +33,7 @@ downloadButton.setAttribute("type", "button");
 // Set the text of the button to 'Download'
 downloadButton.innerText = "Download";
 
+
 //add all to floating window
 floatingWindow.appendChild(selectedCounter);
 floatingWindow.appendChild(InputLabel);
@@ -33,6 +41,7 @@ floatingWindow.appendChild(numberInput);
 floatingWindow.appendChild(downloadButton);
 document.body.appendChild(floatingWindow);
 
+var canvas = null
 function toggle_images(event) {
   console.log(event.target.src);
   if (event.target.style.filter === "grayscale(80%) opacity(0.7)") {
@@ -50,7 +59,7 @@ function toggle_images(event) {
     event.target.style.zIndex = 2;
   }
 }
-const highlightedImages = [];
+var highlightedImages = [];
 
 function generate_floating_windows(e) {
   if (highlightedImages.length > 0) {
@@ -75,51 +84,84 @@ document.addEventListener("click", function (event) {
   if (event.target.id === "floatingwindow") {
     //do nothing
   }
-  if (event.target.tagName === "IMG") {
+  else if (event.target.tagName === "IMG") {
     toggle_images(event);
     generate_floating_windows(event);
   }
+  
 });
+
 //download selected images in a grid
-function generate_canvas(imgPerRow, canvas) {
+function generate_photo_grid(imgPerRow, canvas) {
   var ctx = canvas.getContext("2d");
   const numOfImgs = highlightedImages.length;
   var x = 0;
   var y = 0;
-  var width = canvas.width / imgPerRow;
-  const colNum = numOfImgs / imgPerRow;
-  var height = canvas.height / colNum;
 
   for (var i = 0; i < highlightedImages.length; i++) {
-    ctx.drawImage(highlightedImages[i], x, y, width, height);
-    x += width;
-    if (x >= canvas.width) {
+    const scale = maxImgheight / highlightedImages[i].height;
+    const width = highlightedImages[i].width * scale;
+    ctx.drawImage(highlightedImages[i], x, y, width, maxImgheight);
+    x += width+padding_between_images;
+    x = Math.floor(x)
+    if ((i+1) % imgPerRow == 0) {
       x = 0;
-      y += height;
+      y += maxImgheight + padding_between_images;
+      y = Math.floor(y)
     }
   }
   console.log("canvas created");
 }
-function create_an_canvas() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 400;
-  canvas.height = 400;
+function get_canvas_height_and_width(numPicPerRow) {
+    let height = 0;
+    let width = 0;
+    let current_row_width = 0;
+    let rowCount = 1;
+    //loop thought each image
+    for (var i = 0; i < highlightedImages.length; i++) {
+        //when current image is add to a new row
+        if ((i+1) % numPicPerRow == 0) {
+            height += maxImgheight;
+            current_row_width = 0;
+            rowCount++;
+        }
+        //get scale make height == maxImgheight
+        const scale = maxImgheight / highlightedImages[i].height;
+        //scale width 
+        const scaledWidth = highlightedImages[i].width * scale;
+        current_row_width += scaledWidth;
+        width = width < current_row_width ? current_row_width : width;
+        }
+    return {height: height, width: width, rowCount: rowCount};
+}
+
+function create_an_canvas(setting) {
+  let canvas = document.createElement("canvas");
+  canvas.width = setting.width + (setting.rowCount-1) * padding_between_images;
+  canvas.height = setting.height + (setting.rowCount-1) * padding_between_images;
   canvas.style.display = "none";
+  canvas.style.zIndex = "100000"; // just a large enough number
+  canvas.style.position = "fixed";
+  canvas.style.border = "1px solid black";
+  canvas.id = "myCanvas";
   const parentElement = document.getElementsByTagName("body")[0];
   parentElement.appendChild(canvas);
   return canvas;
 }
 
-//TODO: select img first then create the canvas, fit into a min 300 length grid
 
 // download created canvas
-function download_canvas() {
-  // Get the value of numPicPerRow
-  const numPicPerRow = document.getElementById("numPicPerRow").value;
+function download_canvas(e) {
+  //if value not define then set to 1
+  const numPicPerRow = document.getElementById("numPicPerRow").value ? document.getElementById("numPicPerRow").value : 1;
+// const numPicPerRow = document.getElementById("numPicPerRow").value;
   // updateFloatingWindowPos = false;
   console.log("numPicPerRow: " + numPicPerRow);
-  const canvas = create_an_canvas();
-  generate_canvas(numPicPerRow, canvas);
+
+  //get canvas height and width
+  const canvasSetting = get_canvas_height_and_width(numPicPerRow);
+  canvas = create_an_canvas(canvasSetting);
+  generate_photo_grid(numPicPerRow, canvas);
   try {
     canvas.toBlob(function (blob) {
       const link = document.createElement("a");
@@ -129,8 +171,11 @@ function download_canvas() {
     });
   }
     catch (e) {
-        alert("cannot download canvas due to image from external source, generated on the webpage instead")
         canvas.style.display="block";
+        canvas.style.left = e.clientX + "px";
+        canvas.style.top = e.clientY + "px";
+        alert( "cannot download canvas due to image from external source, generated on the webpage instead" );
     }
+//    highlightedImages = [];
 }
 downloadButton.addEventListener("click", download_canvas);
