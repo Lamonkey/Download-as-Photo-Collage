@@ -5,6 +5,10 @@ floatingWindow.setAttribute("id", "floatingwindow");
 floatingWindow.style.position = "fixed";
 floatingWindow.style.display = "none";
 floatingWindow.style.zIndex = "100";
+floatingWindow.style.padding = "10px";
+floatingWindow.style.width = "200px";
+floatingWindow.style.backgroundColor = "white";
+floatingWindow.style.border = "1px solid black";
 var updateFloatingWindowPos = true;
 //create a number field
 const InputLabel = document.createElement("label");
@@ -31,17 +35,19 @@ document.body.appendChild(floatingWindow);
 
 function toggle_images(event) {
   console.log(event.target.src);
-  if (event.target.classList.contains("highlighted")) {
+  if (event.target.style.filter === "grayscale(80%) opacity(0.7)") {
     // Remove the image from the list
     const index = highlightedImages.indexOf(event.target);
     if (index > -1) {
       highlightedImages.splice(index, 1);
     }
-    event.target.classList.remove("highlighted");
+    event.target.style.filter = '';
+    event.target.style.zIndex = 2;
   } else {
     // Add the image to the list
     highlightedImages.push(event.target);
-    event.target.classList.add("highlighted");
+    event.target.style.filter = 'grayscale(80%) opacity(0.7)';
+    event.target.style.zIndex = 2;
   }
 }
 const highlightedImages = [];
