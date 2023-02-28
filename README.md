@@ -1,5 +1,8 @@
 # Photo Grid Generator
-![Greasy Fork](https://img.shields.io/greasyfork/dt/460908) ![Greasy Fork](https://img.shields.io/greasyfork/rating-count/460908)
+
+[<img src="https://img.shields.io/greasyfork/dt/460908">](https://greasyfork.org/en/scripts/460908-photo-grid-generator)
+[<img src="https://img.shields.io/greasyfork/rating-count/460908">](https://greasyfork.org/en/scripts/460908-photo-grid-generator)
+
 # What Is This Script
 
 Photo Grid Generator is intended to let users create a photo grid using online pictures easier. A user can select multiple images and download a generated photo grid. 
