@@ -1,4 +1,4 @@
-# Readme
+# Photo Grid Generator
 
 # What Is This Script
 
