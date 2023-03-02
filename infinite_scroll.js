@@ -7,7 +7,7 @@ function loadMoreImages() {
     image.src = "./cat1.png"
     // Append the new images to the document body
     const imageContainer = document.getElementById('app');
-    for(let i = 0; i < 10; i++){
+    for(let i = 0; i < 5; i++){
       imageCount++;
       imageContainer.appendChild(image.cloneNode());
     }

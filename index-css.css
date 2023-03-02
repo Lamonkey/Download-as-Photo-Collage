@@ -10,11 +10,11 @@
     z-index: 10000;
     height: 100px;
     width: 100px;
-    background-color: black;
+    background-color:aquamarine;
     opacity: 0.6;
     border-radius: 50%;
     display: flex;
-    color:white;
+    color:gray;
     align-items: center;
     justify-content: center;
 }
