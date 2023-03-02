@@ -50,15 +50,19 @@
   modalBox.setAttribute("class", "modalBox");
   const modalNav = document.createElement("div");
   modalNav.setAttribute("class", "modalNav");
+
   const modalClose = document.createElement("span");
   modalClose.setAttribute("class", "modalClose");
   modalClose.innerHTML = "&times"; // set the close symbol as text content
-  modalNav.appendChild(modalClose);
+
   const modalContent = document.createElement("div");
   modalContent.setAttribute("class", "modalContent");
-  modalBox.appendChild(modalNav);
-  modalBox.appendChild(modalContent);
-  document.body.appendChild(modalBox);
+
+  const modalCanvas = document.createElement("canvas");
+//   modalCanvas.style.display="block"
+  modalCanvas.class = "modalCanvas";
+
+  
 
   //style for modelBox
   modalBox.style.position = "fixed";
@@ -71,7 +75,6 @@
   modalBox.style.height = "60vh";
   modalBox.style.backgroundColor = "rgba(0,0,0,0.4)";
   //styling modalContent
-
   modalContent.style.zIndex = "10000";
   modalContent.style.padding = "20px";
   modalContent.style.height = "100%";
@@ -80,29 +83,125 @@
   modalContent.style.display = "flex";
   modalContent.style.flexWrap = "wrap";
   modalContent.style.alignItems = "flex-start";
-
   //styling modalNav
   modalNav.style.backgroundColor = "white";
-  //styling modalClose
+  modalNav.style.display = "flex";
+  modalNav.style.justifyContent = "end";
+  //close styleing
+  modalClose.style.marginLeft = "10px";
   modalClose.style.color = "rgb(48, 56, 71)";
-  modalClose.style.float = "right";
   modalClose.style.fontSize = "28px";
   modalClose.style.fontWeight = "bold";
+  modalClose.style.cursor = "pointer";
+  //create createCanvas
+  const creatCanvas = modalClose.cloneNode();
+  creatCanvas.className = "createCanvas";
+  creatCanvas.innerHTML = String.fromCodePoint(0x1f304);
+  //add modalBox to DOM
+   
+const canvasContainner = modalContent.cloneNode();
+canvasContainner.style.display = "none";
+  modalBox.appendChild(modalNav);
+  canvasContainner.appendChild(modalCanvas);
+  modalBox.appendChild(canvasContainner);
+  modalBox.appendChild(modalContent);
+  document.body.appendChild(modalBox);
+  //create check image
+  const checkImages = modalClose.cloneNode();
+  checkImages.className = "checkImages";
+  checkImages.innerHTML = String.fromCodePoint(0x1f5bc);
+  modalNav.appendChild(checkImages);
+  modalNav.appendChild(creatCanvas);
+  modalNav.appendChild(modalClose);
+
   var imageSourceMap = new Map();
-  var imagesList = [];
+  var imagesSrcList = [];
+  var imagePerRow = 1;
+  var highlightedImages = [];
+  var maxImgheight = 1000;
+  var padding_between_images = 10;
+  function toggle_images(event) {
+    let selected_image = event.target;
+    if (selected_image.classList.contains("selected")) {
+      // Remove the image from the list
+      const index = highlightedImages.indexOf(event.target);
+      if (index > -1) {
+        highlightedImages.splice(index, 1);
+      }
+      selected_image.style.border = "";
+      selected_image.classList.remove("selected");
+      //   event.target.style.zIndex = 2;
+    } else {
+      selected_image.style.border = "2px solid red";
+      selected_image.classList.add("selected");
+      // Add the image to the list
+      highlightedImages.push(event.target);
+      //   event.target.style.filter = "grayscale(80%) opacity(0.7)";
+      //   event.target.style.zIndex = 2;
+    }
+  }
+  function resize_canvas(setting) {
+    modalCanvas.width =
+      setting.width + setting.rowCount * padding_between_images;
+    modalCanvas.height =
+      setting.height + setting.rowCount * padding_between_images;
+    modalCanvas.style.border = "1px solid black";
+  }
+
+  function get_canvas_height_and_width(numPicPerRow) {
+    let height = 0;
+    let width = 0;
+    let current_row_width = 0;
+    let rowCount = 1;
+    //loop thought each image
+    for (let i = 0; i < highlightedImages.length; i++) {
+      //get scale make height == maxImgheight
+      const scale = maxImgheight / highlightedImages[i].height;
+      //scale width
+      const scaledWidth = highlightedImages[i].width * scale;
+      current_row_width += scaledWidth;
+      width = width < current_row_width ? current_row_width : width;
+      //when next image is add to a new row
+      if ((i + 1) % numPicPerRow === 0) {
+        height += maxImgheight;
+        current_row_width = 0;
+        rowCount++;
+      }
+    }
+    return { height: height, width: width, rowCount: rowCount };
+  }
+  function generate_photo_grid(imgPerRow) {
+    var ctx = modalCanvas.getContext("2d");
+    var x = 0;
+    var y = 0;
+
+    for (var i = 0; i < highlightedImages.length; i++) {
+      const scale = maxImgheight / highlightedImages[i].height;
+      const width = highlightedImages[i].width * scale;
+      ctx.drawImage(highlightedImages[i], x, y, width, maxImgheight);
+      x += width + padding_between_images;
+      x = Math.floor(x);
+      if ((i + 1) % imgPerRow == 0) {
+        x = 0;
+        y += maxImgheight + padding_between_images;
+        y = Math.floor(y);
+      }
+    }
+  }
+
   function countAndAddImages() {
     let newImages = document.getElementsByTagName("img");
     for (let i = 0; i < newImages.length; i++) {
-      //create a new newImage from source
+      //   create a new newImage from source
       if (imageSourceMap.has(newImages[i].src)) {
         continue;
       }
       imageSourceMap.set(newImages[i].src, true);
-      let newImage = newImages[i].cloneNode();
-      imagesList.push(newImage);
+      let newImageSrc = newImages[i].src;
+      imagesSrcList.push(newImageSrc);
     }
-    console.log("run loop here")
-    return imagesList.length;
+
+    return imagesSrcList.length;
   }
 
   function add_count_to_view(imageCount) {
@@ -125,10 +224,12 @@
   });
   document.addEventListener("click", (event) => {
     const target = event.target;
-    if (target === floatingCircle || target === counterDisplay) {
+    if (target === floatingCircleContent || target === counterDisplay) {
       //display all image to the model box
       modalBox.style.display = "flex";
-      imagesList.forEach((img) => {
+      imagesSrcList.forEach((src) => {
+        let img = document.createElement("img");
+        img.src = src;
         img.className = "modalImage";
         img.style.width = "100px";
         img.style.marginBottom = "15px";
@@ -137,6 +238,21 @@
       });
     } else if (event.target == modalClose) {
       close_modal();
+    } else if (event.target == creatCanvas) {
+      //show the canvas and hide content
+      modalContent.style.display = "none";
+      const canvasSetting = get_canvas_height_and_width(imagePerRow);
+      canvasContainner.style.display ="block";
+      resize_canvas(canvasSetting);
+      generate_photo_grid(imagePerRow);
+      //   alert("create canvas");
+    } else if (event.target == checkImages) {
+      modalContent.style.display = "flex";
+      canvasContainner.style.display = "none";
+
+      //   alert("check images");
+    } else if (event.target.classList.contains("modalImage")) {
+      toggle_images(event);
     }
   });
 
