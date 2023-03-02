@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Photo Grid Generator
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Generate and download Image Grid from selected images. If not able to download the grid, it will display as a floating modal for download
 // @author       Lamonkey
 // @match        *://*/*
