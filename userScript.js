@@ -18,8 +18,8 @@
   floatingCircleContent.setAttribute("id", "floating-circle-content");
   const counterDisplay = document.createElement("h1");
   counterDisplay.innerText = "count";
-  floatingCircleContent.appendChild(counterDisplay);
   floatingCircle.appendChild(floatingCircleContent);
+  floatingCircleContent.appendChild(counterDisplay);
   // append the floatingCircle div to the body of the webpage
   document.body.appendChild(floatingCircle);
 
@@ -34,7 +34,7 @@
   floatingCircle.style.opacity = "0.6";
   floatingCircle.style.borderRadius = "50%";
   floatingCircle.style.display = "flex";
-  floatingCircle.style.color = "gray";
+  floatingCircle.style.color = "white";
   floatingCircle.style.alignItems = "center";
   floatingCircle.style.justifyContent = "center";
   //css for floating-circle-content
@@ -50,33 +50,30 @@
   modalBox.setAttribute("class", "modalBox");
   const modalNav = document.createElement("div");
   modalNav.setAttribute("class", "modalNav");
-
   const modalClose = document.createElement("span");
   modalClose.setAttribute("class", "modalClose");
   modalClose.innerHTML = "&times"; // set the close symbol as text content
-
   const modalContent = document.createElement("div");
   modalContent.setAttribute("class", "modalContent");
-
+  const photosContainer = document.createElement("ul");
+  photosContainer.setAttribute("class", "photosContainer");
   const modalCanvas = document.createElement("canvas");
-//   modalCanvas.style.display="block"
+  //   modalCanvas.style.display="block"
   modalCanvas.class = "modalCanvas";
-
-  
 
   //style for modelBox
   modalBox.style.position = "fixed";
   modalBox.style.zIndex = "10000";
-  modalBox.style.display = "none";
+  modalBox.style.display = "flex";
   modalBox.style.flexDirection = "column";
   modalBox.style.left = "20%";
   modalBox.style.top = "10%";
   modalBox.style.width = "60vw";
   modalBox.style.height = "60vh";
-  modalBox.style.backgroundColor = "rgba(0,0,0,0.4)";
+  modalBox.style.backgroundColor = "rgba(255,255,255,0.4)";
   //styling modalContent
   modalContent.style.zIndex = "10000";
-  modalContent.style.padding = "20px";
+  // modalContent.style.padding = "0";
   modalContent.style.height = "100%";
   modalContent.style.overflowY = "auto";
   modalContent.style.overflowX = "auto";
@@ -93,14 +90,20 @@
   modalClose.style.fontSize = "28px";
   modalClose.style.fontWeight = "bold";
   modalClose.style.cursor = "pointer";
+  //photosContainer styling
+  photosContainer.style.display = "flex";
+  photosContainer.style.flexWrap = "wrap";
+  photosContainer.style.margin = "2%";
   //create createCanvas
   const creatCanvas = modalClose.cloneNode();
   creatCanvas.className = "createCanvas";
   creatCanvas.innerHTML = String.fromCodePoint(0x1f304);
+
+  const canvasContainner = modalContent.cloneNode();
+  canvasContainner.style.display = "none";
+
   //add modalBox to DOM
-   
-const canvasContainner = modalContent.cloneNode();
-canvasContainner.style.display = "none";
+  modalContent.appendChild(photosContainer);
   modalBox.appendChild(modalNav);
   canvasContainner.appendChild(modalCanvas);
   modalBox.appendChild(canvasContainner);
@@ -120,6 +123,26 @@ canvasContainner.style.display = "none";
   var highlightedImages = [];
   var maxImgheight = 1000;
   var padding_between_images = 10;
+
+  //factor method
+  function wrap_image(imgSrc) {
+    const img_li = document.createElement("li");
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    img_li.appendChild(img);
+    //styling img_li
+    img_li.style.height = "20vh";
+    img_li.style.flexGrow = "1";
+    img_li.style.margin = "2%";
+    //styling img
+    img.style.maxHeight = "100%";
+    img.style.minWidth = "100%";
+    img.style.objectFit = "cover";
+    img.style.verticalAlign = "bottom";
+    img.style.borderRadius = "1%";
+    return img_li;
+  }
+
   function toggle_images(event) {
     let selected_image = event.target;
     if (selected_image.classList.contains("selected")) {
@@ -228,13 +251,8 @@ canvasContainner.style.display = "none";
       //display all image to the model box
       modalBox.style.display = "flex";
       imagesSrcList.forEach((src) => {
-        let img = document.createElement("img");
-        img.src = src;
-        img.className = "modalImage";
-        img.style.width = "100px";
-        img.style.marginBottom = "15px";
-        img.style.margin = "15px 15px";
-        modalContent.appendChild(img);
+        const img = wrap_image(src);
+        photosContainer.appendChild(img);
       });
     } else if (event.target == modalClose) {
       close_modal();
@@ -242,7 +260,7 @@ canvasContainner.style.display = "none";
       //show the canvas and hide content
       modalContent.style.display = "none";
       const canvasSetting = get_canvas_height_and_width(imagePerRow);
-      canvasContainner.style.display ="block";
+      canvasContainner.style.display = "block";
       resize_canvas(canvasSetting);
       generate_photo_grid(imagePerRow);
       //   alert("create canvas");
