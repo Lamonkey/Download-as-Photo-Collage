@@ -11,18 +11,12 @@
 (function () {
   "use strict";
   //create floating circle
-  // create the div elements
   const floatingCircle = document.createElement("div");
   floatingCircle.setAttribute("id", "floating-circle");
   const floatingCircleContent = document.createElement("div");
   floatingCircleContent.setAttribute("id", "floating-circle-content");
   const counterDisplay = document.createElement("h1");
   counterDisplay.innerText = "count";
-  floatingCircle.appendChild(floatingCircleContent);
-  floatingCircleContent.appendChild(counterDisplay);
-  // append the floatingCircle div to the body of the webpage
-  document.body.appendChild(floatingCircle);
-
   // set the CSS styles for floatingCircle
   floatingCircle.style.position = "fixed";
   floatingCircle.style.top = "1em";
@@ -44,6 +38,10 @@
   floatingCircleContent.style.justifyContent = "center";
   floatingCircleContent.style.height = "100%";
   floatingCircleContent.style.width = "100%";
+  //add floating circle to DOM
+  floatingCircle.appendChild(floatingCircleContent);
+  floatingCircleContent.appendChild(counterDisplay);
+  document.body.appendChild(floatingCircle);
 
   //create modal component
   const modalBox = document.createElement("div");
@@ -52,15 +50,13 @@
   modalNav.setAttribute("class", "modalNav");
   const modalClose = document.createElement("span");
   modalClose.setAttribute("class", "modalClose");
-  modalClose.innerHTML = "&times"; // set the close symbol as text content
+  modalClose.innerHTML = "&times"; // x symbol
   const modalContent = document.createElement("div");
   modalContent.setAttribute("class", "modalContent");
   const photosContainer = document.createElement("ol");
   photosContainer.setAttribute("class", "photosContainer");
   const modalCanvas = document.createElement("canvas");
-  //   modalCanvas.style.display="block"
   modalCanvas.class = "modalCanvas";
-
   //style for modelBox
   modalBox.style.position = "fixed";
   modalBox.style.zIndex = "10000";
@@ -94,7 +90,6 @@
   photosContainer.style.display = "flex";
   photosContainer.style.flexWrap = "wrap";
   photosContainer.style.margin = "2%";
-
   //clone a photo container for canvas
   const layoutContent = photosContainer.cloneNode();
   layoutContent.className = "layoutContent";
@@ -102,16 +97,12 @@
   layoutContainer.className = "layoutContainer";
   layoutContainer.appendChild(layoutContent);
   layoutContainer.style.display = "none";
-
-  // modalBox.insertBefore(layoutContainer, modalBox.firstChild.nextSibling);
-  //create createCanvas
+  //create canvas containner
   const creatCanvas = modalClose.cloneNode();
   creatCanvas.className = "createCanvas";
   creatCanvas.innerHTML = String.fromCodePoint(0x1f304);
-
   const canvasContainner = modalContent.cloneNode();
   canvasContainner.style.display = "none";
-
   //add modalBox to DOM
   modalContent.appendChild(photosContainer);
   modalBox.appendChild(modalNav);
@@ -128,6 +119,7 @@
   modalNav.appendChild(creatCanvas);
   modalNav.appendChild(modalClose);
 
+  //glable setting
   var imageSourceMap = new Map();
   var imagesSrcList = [];
   var imagePerRow = 1;
@@ -137,6 +129,7 @@
 
   //utility function
   function getRenderedSize(contains, cWidth, cHeight, width, height, pos) {
+    //get the size of the image after being rendered
     var oRatio = width / height,
       cRatio = cWidth / cHeight;
     return function () {
@@ -152,22 +145,8 @@
       return this;
     }.call({});
   }
-
-  function putImageIntoRow() {
-    // let smallest = null;
-    let row = new Map();
-    for (let i = 0; i < highlightedImages.length; i++) {
-      // let x = highlightedImages[i].getBoundingClientRect().x;
-      let y = Math.floor(highlightedImages[i].getBoundingClientRect().y);
-      if (row.has(y)) {
-        row.get(y).push(highlightedImages[i]);
-      } else {
-        row.set(y, [highlightedImages[i]]);
-      }
-    }
-    return row;
-  }
   function getImgSizeInfo(img) {
+    //interface for getrenderSize
     var pos = window
       .getComputedStyle(img)
       .getPropertyValue("object-position")
@@ -181,36 +160,28 @@
       parseInt(pos[0])
     );
   }
-
-  //factor method
-  function wrap_image(imgSrc) {
-    const img_li = document.createElement("li");
-    const img = document.createElement("img");
-    img.src = imgSrc;
-    img_li.appendChild(img);
-    //styling img_li
-    img_li.style.height = "20vh";
-    img_li.style.flexGrow = "1";
-    img_li.style.margin = "10px";
-    //styling img
-    img.style.maxHeight = "100%";
-    img.style.minWidth = "100%";
-    img.style.objectFit = "scale-down";
-    img.style.verticalAlign = "bottom";
-    img.style.borderRadius = "1%";
-    // img_li.style.backgroundColor = "red";
-    img_li.classList.add("modalImage");
-    img.classList.add("modalImage");
-
-    return img_li;
+  function putImageIntoRow() {
+    //put images into different row, key is row number value is list of imgs
+    let row = new Map();
+    for (let i = 0; i < highlightedImages.length; i++) {
+      let y = Math.floor(highlightedImages[i].getBoundingClientRect().y);
+      if (row.has(y)) {
+        row.get(y).push(highlightedImages[i]);
+      } else {
+        row.set(y, [highlightedImages[i]]);
+      }
+    }
+    return row;
   }
-
   function toggle_images(event) {
+    /**
+     * toggle the image border and add to or remove from hightlightedImages
+     */
     let selected_image = event.target;
     console.log(event.target.getBoundingClientRect());
     console.log(getImgSizeInfo(selected_image));
+    //unselect
     if (selected_image.classList.contains("selected")) {
-      // Remove the image from the list
       const index = highlightedImages.indexOf(event.target);
       if (index > -1) {
         highlightedImages.splice(index, 1);
@@ -219,53 +190,32 @@
       selected_image.classList.remove("selected");
       //also mark the containner
       selected_image.parentElement.classList("selected");
-      //   event.target.style.zIndex = 2;
-    } else {
+    } 
+    //select
+    else {
       selected_image.style.border = "2px solid red";
       selected_image.classList.add("selected");
       //also mark the containner
       selected_image.parentElement.classList.add("selected");
-      // Add the image to the list
       highlightedImages.push(event.target);
-      //   event.target.style.filter = "grayscale(80%) opacity(0.7)";
-      //   event.target.style.zIndex = 2;
     }
   }
   function resize_canvas(setting) {
+    /**
+     * resize the canvas based on setting
+     * */ 
     const ctx = modalCanvas.getContext("2d");
     modalCanvas.width = setting.width;
     modalCanvas.height = setting.height;
     ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
     modalCanvas.style.border = "1px solid black";
   }
-  //bottom
-  // :
-  // 355.7265625
-  // height
-  // :
-  // 106.3984375
-  // left
-  // :
-  // 453.734375
-  // right
-  // :
-  // 915.2265625
-  // top
-  // :
-  // 249.328125
-  // width
-  // :
-  // 461.4921875
-  // x
-  // :
-  // 453.734375
-  // y
-  // :
-  // 249.328125
+    
   function get_canvas_height_and_width() {
-    //TODO: get from input
-
-    //find starting position which the smallest x and y
+    /**
+     * return the size of the canvas based on the layout of layoutContainner
+     */
+    //TODO: maybe could just simply get the size of the layoutcontainer
     let smallestX = Infinity;
     let smallestY = Infinity;
     for (let i = 0; i < highlightedImages.length; i++) {
@@ -302,15 +252,49 @@
     };
   }
 
+
+
+  //factor method
+  function wrap_image(imgSrc) {
+    //return a containner that contains an image
+    const img_li = document.createElement("li");
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    img_li.appendChild(img);
+    //styling img_li
+    img_li.style.height = "20vh";
+    img_li.style.flexGrow = "1";
+    img_li.style.margin = "10px";
+    //styling img
+    img.style.maxHeight = "100%";
+    img.style.minWidth = "100%";
+    img.style.objectFit = "scale-down";
+    img.style.verticalAlign = "bottom";
+    img.style.borderRadius = "1%";
+    // img_li.style.backgroundColor = "red";
+    img_li.classList.add("modalImage");
+    img.classList.add("modalImage");
+
+    return img_li;
+  }
+
+  function resize_canvas(setting) {
+    const ctx = modalCanvas.getContext("2d");
+    modalCanvas.width = setting.width;
+    modalCanvas.height = setting.height;
+    ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    modalCanvas.style.border = "1px solid black";
+  }
+
   function generate_photo_grid(startingPoint) {
     let rows = putImageIntoRow();
     const ctx = modalCanvas.getContext("2d");
-    
+
     // ctx.clearRect(0,0, modalCanvas.width, modalCanvas.height);
-    for (let [key, imgs] of rows) {                 
+    for (let [key, imgs] of rows) {
       // let current_position = highlightedImages[i].getBoundingClientRect();
       let x = 0;
-      let y = key-Math.floor(startingPoint.y);
+      let y = key - Math.floor(startingPoint.y);
       for (let i = 0; i < imgs.length; i++) {
         let image_size = getImgSizeInfo(imgs[i]);
         ctx.drawImage(imgs[i], x, y, image_size.width, image_size.height);
@@ -356,7 +340,6 @@
     const target = event.target;
     if (target === floatingCircleContent || target === counterDisplay) {
       //render selected image to image containner
-
       modalBox.style.display = "flex";
       imagesSrcList.forEach((src) => {
         const img = wrap_image(src);
@@ -365,8 +348,7 @@
     } else if (event.target == modalClose) {
       close_modal();
     } else if (event.target == creatCanvas) {
-      //show the canvas and hide content
-      //hide all unhighlighted images
+      //show the canvas and hide content and unhighlighted images
       const modalImages = document.querySelectorAll(
         ".modalImage:not(.selected)"
       );
@@ -376,13 +358,11 @@
       //wait one sec for the images to be hidden
       setTimeout(function () {
         const canvasSetting = get_canvas_height_and_width();
-        // layoutContainer.style.display = "block";
         resize_canvas(canvasSetting);
         generate_photo_grid(canvasSetting.startingPoint);
-        canvasContainner.style.display = "block";
+        canvasContainner.style.display = "";
         modalContent.style.display = "none";
       }, 1000);
-      // alert("create canvas");
     } else if (event.target == checkImages) {
       const modalImages = document.querySelectorAll(
         ".modalImage:not(.selected)"
@@ -390,12 +370,8 @@
       modalImages.forEach((image) => {
         image.style.display = "block";
       });
-
       modalContent.style.display = "block";
-      // layoutContainer.style.display = "none";
       canvasContainner.style.display = "none";
-
-      //   alert("check images");
     } else if (event.target.classList.contains("modalImage")) {
       toggle_images(event);
     }
