@@ -1,10 +1,17 @@
 // ==UserScript==
 // @name         Photo Grid Generator
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Generate and download Image Grid from selected images. If not able to download the grid, it will display as a floating modal for download
+// @version      2.0
+// @description  Select image and generate a photo grid for download
 // @author       Lamonkey
 // @match        *://*/*
+// @match        https://twitter.com/*
+// @match        https://www.instagram.com/*
+// @match        https://www.facebook.com/*
+// @match        https://www.pinterest.com/*
+// @match        https://www.tumblr.com/*
+// @match        https://www.reddit.com/*
+// @match        https://www.flickr.com/*
 // @icon         https://cdn-icons-png.flaticon.com/512/9813/9813564.png
 // @grant        none
 // @license      MIT
@@ -98,11 +105,18 @@
   layoutContainer.className = "layoutContainer";
   layoutContainer.appendChild(layoutContent);
   layoutContainer.style.display = "none";
-  //create canvas containner
-  const creatCanvas = modalClose.cloneNode();
+  //nav button
+  const creatCanvas = document.createElement("button");
+  creatCanvas.style.border = "none";
+  creatCanvas.style.backgroundColor = "white";
   creatCanvas.className = "createCanvas";
-  creatCanvas.innerHTML = String.fromCodePoint(0x1f304);
+  creatCanvas.innerText = `${String.fromCodePoint(0x1f304)}Create Photo Grid`;
   const canvasContainner = modalContent.cloneNode();
+  //styling nav button
+  creatCanvas.style.marginLeft = "10px";
+  creatCanvas.style.color = "rgb(48, 56, 71)";
+  creatCanvas.style.fontSize = "28px";
+  creatCanvas.style.fontWeight = "bold";
   canvasContainner.style.display = "none";
   //add modalBox to DOM
   modalContent.appendChild(photosContainer);
@@ -113,9 +127,10 @@
   modalBox.appendChild(layoutContainer);
   document.body.appendChild(modalBox);
   //create check image
-  const checkImages = modalClose.cloneNode();
+  const checkImages = creatCanvas.cloneNode();
   checkImages.className = "checkImages";
-  checkImages.innerHTML = String.fromCodePoint(0x1f5bc);
+  // checkImages.innerHTML = String.fromCodePoint(0x1f5bc);
+  checkImages.innerText = `${String.fromCodePoint(0x1f5bc)}Check Images`;
   modalNav.appendChild(checkImages);
   modalNav.appendChild(creatCanvas);
   modalNav.appendChild(modalClose);
@@ -191,7 +206,7 @@
       selected_image.classList.remove("selected");
       //also mark the containner
       selected_image.parentElement.classList("selected");
-    } 
+    }
     //select
     else {
       selected_image.style.border = "2px solid red";
@@ -204,14 +219,14 @@
   function resize_canvas(setting) {
     /**
      * resize the canvas based on setting
-     * */ 
+     * */
     const ctx = modalCanvas.getContext("2d");
     modalCanvas.width = setting.width;
     modalCanvas.height = setting.height;
     ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
     modalCanvas.style.border = "1px solid black";
   }
-    
+
   function get_canvas_height_and_width() {
     /**
      * return the size of the canvas based on the layout of layoutContainner
@@ -252,8 +267,6 @@
       startingPoint: { x: smallestX, y: smallestY },
     };
   }
-
-
 
   //factor method
   function wrap_image(imgSrc) {
