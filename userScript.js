@@ -1,12 +1,13 @@
 // ==UserScript==
-// @name         New Userscript
+// @name         Photo Grid Generator
 // @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  try to take over the world!
-// @author       You
+// @version      1.1
+// @description  Generate and download Image Grid from selected images. If not able to download the grid, it will display as a floating modal for download
+// @author       Lamonkey
 // @match        *://*/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=0.1
+// @icon         https://cdn-icons-png.flaticon.com/512/9813/9813564.png
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 (function () {
   "use strict";
