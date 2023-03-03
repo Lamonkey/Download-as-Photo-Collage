@@ -55,7 +55,7 @@
   modalClose.innerHTML = "&times"; // set the close symbol as text content
   const modalContent = document.createElement("div");
   modalContent.setAttribute("class", "modalContent");
-  const photosContainer = document.createElement("ul");
+  const photosContainer = document.createElement("ol");
   photosContainer.setAttribute("class", "photosContainer");
   const modalCanvas = document.createElement("canvas");
   //   modalCanvas.style.display="block"
@@ -64,7 +64,7 @@
   //style for modelBox
   modalBox.style.position = "fixed";
   modalBox.style.zIndex = "10000";
-  modalBox.style.display = "flex";
+  modalBox.style.display = "none";
   modalBox.style.flexDirection = "column";
   modalBox.style.left = "20%";
   modalBox.style.top = "10%";
@@ -77,7 +77,7 @@
   modalContent.style.height = "100%";
   modalContent.style.overflowY = "auto";
   modalContent.style.overflowX = "auto";
-  modalContent.style.display = "flex";
+  modalContent.style.display = "block";
   modalContent.style.flexWrap = "wrap";
   modalContent.style.alignItems = "flex-start";
   //styling modalNav
@@ -94,6 +94,16 @@
   photosContainer.style.display = "flex";
   photosContainer.style.flexWrap = "wrap";
   photosContainer.style.margin = "2%";
+
+  //clone a photo container for canvas
+  const layoutContent = photosContainer.cloneNode();
+  layoutContent.className = "layoutContent";
+  const layoutContainer = modalContent.cloneNode();
+  layoutContainer.className = "layoutContainer";
+  layoutContainer.appendChild(layoutContent);
+  layoutContainer.style.display = "none";
+
+  // modalBox.insertBefore(layoutContainer, modalBox.firstChild.nextSibling);
   //create createCanvas
   const creatCanvas = modalClose.cloneNode();
   creatCanvas.className = "createCanvas";
@@ -108,6 +118,7 @@
   canvasContainner.appendChild(modalCanvas);
   modalBox.appendChild(canvasContainner);
   modalBox.appendChild(modalContent);
+  modalBox.appendChild(layoutContainer);
   document.body.appendChild(modalBox);
   //create check image
   const checkImages = modalClose.cloneNode();
@@ -124,6 +135,53 @@
   var maxImgheight = 1000;
   var padding_between_images = 10;
 
+  //utility function
+  function getRenderedSize(contains, cWidth, cHeight, width, height, pos) {
+    var oRatio = width / height,
+      cRatio = cWidth / cHeight;
+    return function () {
+      if (contains ? oRatio > cRatio : oRatio < cRatio) {
+        this.width = cWidth;
+        this.height = cWidth / oRatio;
+      } else {
+        this.width = cHeight * oRatio;
+        this.height = cHeight;
+      }
+      this.left = (cWidth - this.width) * (pos / 100);
+      this.right = this.width + this.left;
+      return this;
+    }.call({});
+  }
+
+  function putImageIntoRow() {
+    // let smallest = null;
+    let row = new Map();
+    for (let i = 0; i < highlightedImages.length; i++) {
+      // let x = highlightedImages[i].getBoundingClientRect().x;
+      let y = Math.floor(highlightedImages[i].getBoundingClientRect().y);
+      if (row.has(y)) {
+        row.get(y).push(highlightedImages[i]);
+      } else {
+        row.set(y, [highlightedImages[i]]);
+      }
+    }
+    return row;
+  }
+  function getImgSizeInfo(img) {
+    var pos = window
+      .getComputedStyle(img)
+      .getPropertyValue("object-position")
+      .split(" ");
+    return getRenderedSize(
+      true,
+      img.width,
+      img.height,
+      img.naturalWidth,
+      img.naturalHeight,
+      parseInt(pos[0])
+    );
+  }
+
   //factor method
   function wrap_image(imgSrc) {
     const img_li = document.createElement("li");
@@ -133,18 +191,24 @@
     //styling img_li
     img_li.style.height = "20vh";
     img_li.style.flexGrow = "1";
-    img_li.style.margin = "2%";
+    img_li.style.margin = "10px";
     //styling img
     img.style.maxHeight = "100%";
     img.style.minWidth = "100%";
-    img.style.objectFit = "cover";
+    img.style.objectFit = "scale-down";
     img.style.verticalAlign = "bottom";
     img.style.borderRadius = "1%";
+    // img_li.style.backgroundColor = "red";
+    img_li.classList.add("modalImage");
+    img.classList.add("modalImage");
+
     return img_li;
   }
 
   function toggle_images(event) {
     let selected_image = event.target;
+    console.log(event.target.getBoundingClientRect());
+    console.log(getImgSizeInfo(selected_image));
     if (selected_image.classList.contains("selected")) {
       // Remove the image from the list
       const index = highlightedImages.indexOf(event.target);
@@ -153,10 +217,14 @@
       }
       selected_image.style.border = "";
       selected_image.classList.remove("selected");
+      //also mark the containner
+      selected_image.parentElement.classList("selected");
       //   event.target.style.zIndex = 2;
     } else {
       selected_image.style.border = "2px solid red";
       selected_image.classList.add("selected");
+      //also mark the containner
+      selected_image.parentElement.classList.add("selected");
       // Add the image to the list
       highlightedImages.push(event.target);
       //   event.target.style.filter = "grayscale(80%) opacity(0.7)";
@@ -164,50 +232,89 @@
     }
   }
   function resize_canvas(setting) {
-    modalCanvas.width =
-      setting.width + setting.rowCount * padding_between_images;
-    modalCanvas.height =
-      setting.height + setting.rowCount * padding_between_images;
+    const ctx = modalCanvas.getContext("2d");
+    modalCanvas.width = setting.width;
+    modalCanvas.height = setting.height;
+    ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
     modalCanvas.style.border = "1px solid black";
   }
+  //bottom
+  // :
+  // 355.7265625
+  // height
+  // :
+  // 106.3984375
+  // left
+  // :
+  // 453.734375
+  // right
+  // :
+  // 915.2265625
+  // top
+  // :
+  // 249.328125
+  // width
+  // :
+  // 461.4921875
+  // x
+  // :
+  // 453.734375
+  // y
+  // :
+  // 249.328125
+  function get_canvas_height_and_width() {
+    //TODO: get from input
 
-  function get_canvas_height_and_width(numPicPerRow) {
-    let height = 0;
-    let width = 0;
-    let current_row_width = 0;
-    let rowCount = 1;
-    //loop thought each image
+    //find starting position which the smallest x and y
+    let smallestX = Infinity;
+    let smallestY = Infinity;
     for (let i = 0; i < highlightedImages.length; i++) {
-      //get scale make height == maxImgheight
-      const scale = maxImgheight / highlightedImages[i].height;
-      //scale width
-      const scaledWidth = highlightedImages[i].width * scale;
-      current_row_width += scaledWidth;
-      width = width < current_row_width ? current_row_width : width;
-      //when next image is add to a new row
-      if ((i + 1) % numPicPerRow === 0) {
-        height += maxImgheight;
-        current_row_width = 0;
-        rowCount++;
+      let x = highlightedImages[i].getBoundingClientRect().x;
+      let y = highlightedImages[i].getBoundingClientRect().y;
+      if (x < smallestX) {
+        smallestX = x;
+      }
+      if (y < smallestY) {
+        smallestY = y;
       }
     }
-    return { height: height, width: width, rowCount: rowCount };
+    //find the ending position which is the largest x and y + width and height
+    let largestX = 0;
+    let largestY = 0;
+    for (let i = 0; i < highlightedImages.length; i++) {
+      let x = highlightedImages[i].getBoundingClientRect().x;
+      let y = highlightedImages[i].getBoundingClientRect().y;
+      let width = highlightedImages[i].getBoundingClientRect().width;
+      let height = highlightedImages[i].getBoundingClientRect().height;
+      if (x + width > largestX) {
+        largestX = x + width;
+      }
+      if (y + height > largestY) {
+        largestY = y + height;
+      }
+    }
+    let width = largestX - smallestX;
+    let height = largestY - smallestY;
+    return {
+      height: Math.floor(height),
+      width: Math.floor(width),
+      startingPoint: { x: smallestX, y: smallestY },
+    };
   }
-  function generate_photo_grid(imgPerRow) {
-    var ctx = modalCanvas.getContext("2d");
-    var x = 0;
-    var y = 0;
 
-    for (var i = 0; i < highlightedImages.length; i++) {
-      const scale = maxImgheight / highlightedImages[i].height;
-      const width = highlightedImages[i].width * scale;
-      ctx.drawImage(highlightedImages[i], x, y, width, maxImgheight);
-      x += width + padding_between_images;
-      x = Math.floor(x);
-      if ((i + 1) % imgPerRow == 0) {
-        x = 0;
-        y += maxImgheight + padding_between_images;
-        y = Math.floor(y);
+  function generate_photo_grid(startingPoint) {
+    let rows = putImageIntoRow();
+    const ctx = modalCanvas.getContext("2d");
+    
+    // ctx.clearRect(0,0, modalCanvas.width, modalCanvas.height);
+    for (let [key, imgs] of rows) {                 
+      // let current_position = highlightedImages[i].getBoundingClientRect();
+      let x = 0;
+      let y = key-Math.floor(startingPoint.y);
+      for (let i = 0; i < imgs.length; i++) {
+        let image_size = getImgSizeInfo(imgs[i]);
+        ctx.drawImage(imgs[i], x, y, image_size.width, image_size.height);
+        x += image_size.width + 10;
       }
     }
   }
@@ -232,8 +339,8 @@
   }
   function close_modal() {
     modalBox.style.display = "none";
-    while (modalContent.firstChild) {
-      modalContent.removeChild(modalContent.firstChild);
+    while (photosContainer.firstChild) {
+      photosContainer.removeChild(photosContainer.firstChild);
     }
   }
   document.addEventListener("scroll", async () => {
@@ -248,7 +355,8 @@
   document.addEventListener("click", (event) => {
     const target = event.target;
     if (target === floatingCircleContent || target === counterDisplay) {
-      //display all image to the model box
+      //render selected image to image containner
+
       modalBox.style.display = "flex";
       imagesSrcList.forEach((src) => {
         const img = wrap_image(src);
@@ -258,14 +366,33 @@
       close_modal();
     } else if (event.target == creatCanvas) {
       //show the canvas and hide content
-      modalContent.style.display = "none";
-      const canvasSetting = get_canvas_height_and_width(imagePerRow);
-      canvasContainner.style.display = "block";
-      resize_canvas(canvasSetting);
-      generate_photo_grid(imagePerRow);
-      //   alert("create canvas");
+      //hide all unhighlighted images
+      const modalImages = document.querySelectorAll(
+        ".modalImage:not(.selected)"
+      );
+      modalImages.forEach((image) => {
+        image.style.display = "none";
+      });
+      //wait one sec for the images to be hidden
+      setTimeout(function () {
+        const canvasSetting = get_canvas_height_and_width();
+        // layoutContainer.style.display = "block";
+        resize_canvas(canvasSetting);
+        generate_photo_grid(canvasSetting.startingPoint);
+        canvasContainner.style.display = "block";
+        modalContent.style.display = "none";
+      }, 1000);
+      // alert("create canvas");
     } else if (event.target == checkImages) {
-      modalContent.style.display = "flex";
+      const modalImages = document.querySelectorAll(
+        ".modalImage:not(.selected)"
+      );
+      modalImages.forEach((image) => {
+        image.style.display = "block";
+      });
+
+      modalContent.style.display = "block";
+      // layoutContainer.style.display = "none";
       canvasContainner.style.display = "none";
 
       //   alert("check images");
