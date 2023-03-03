@@ -1,7 +1,7 @@
 # Download As Photo Collage
 
-[<img src="https://img.shields.io/greasyfork/dt/460908">](https://greasyfork.org/en/scripts/460908-photo-grid-generator)
-[<img src="https://img.shields.io/greasyfork/rating-count/460908">](https://greasyfork.org/en/scripts/460908-photo-grid-generator)
+[<img src="https://img.shields.io/greasyfork/dt/461107">](https://greasyfork.org/en/scripts/461107-photo-grid-generator)
+[<img src="https://img.shields.io/greasyfork/rating-count/461107">](https://greasyfork.org/en/scripts/461107-photo-grid-generator)
 
 # What Is This Script
 
