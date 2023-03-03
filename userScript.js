@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Photo Grid Generator
+// @name         Download as Photo Collage
 // @namespace    http://tampermonkey.net/
 // @version      2.0
-// @description  Select image and generate a photo grid for download
+// @description  A user script to allow user to select any images online then download them as a photo collage.
 // @author       Lamonkey
 // @match        *://*/*
 // @match        https://twitter.com/*
@@ -110,7 +110,7 @@
   creatCanvas.style.border = "none";
   creatCanvas.style.backgroundColor = "white";
   creatCanvas.className = "createCanvas";
-  creatCanvas.innerText = `${String.fromCodePoint(0x1f304)}Create Photo Grid`;
+  creatCanvas.innerText = `${String.fromCodePoint(0x1f304)}Create Collage`;
   const canvasContainner = modalContent.cloneNode();
   //styling nav button
   creatCanvas.style.marginLeft = "10px";
